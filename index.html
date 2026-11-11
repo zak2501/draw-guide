@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f7fe0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Tirzepatide Draw Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&family=Archivo:wght@600;800&display=swap">
+<style>
+/* Layout: clinical device panel. Syringe hero on top, setup + remaining-in-vial side by side, vial dates, then step-by-step guides. */
+:root{
+  --bg:#f3f6f8; --panel:#ffffff; --ink:#14212b; --muted:#5b6b78; --line:#d6dee4;
+  --liquid:#2f7fe0; --liquid-2:#7cb6ff; --barrel:#e6eef4; --steel:#8a98a3;
+  --ok:#1f8a5b; --warn:#b26a00; --bad:#c23b3b;
+  --display:"Archivo",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e151b; --panel:#16212a; --ink:#e4edf3; --muted:#93a4b1; --line:#2a3946;
+  --liquid:#3d8ef0; --liquid-2:#86bfff; --barrel:#1c2a35; --steel:#6f808c;
+  --ok:#43c08a; --warn:#e3a13b; --bad:#ec6b6b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e151b; --panel:#16212a; --ink:#e4edf3; --muted:#93a4b1; --line:#2a3946;
+  --liquid:#3d8ef0; --liquid-2:#86bfff; --barrel:#1c2a35; --steel:#6f808c;
+  --ok:#43c08a; --warn:#e3a13b; --bad:#ec6b6b; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(24px,4vw,34px);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:19px;margin:0 0 12px}
+.sub{color:var(--muted);margin:4px 0 0;max-width:65ch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;min-width:0}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.hero{display:flex;flex-direction:column;gap:12px}
+.readout{display:flex;flex-wrap:wrap;gap:24px;align-items:baseline}
+.big{font-family:var(--mono);font-weight:600;font-size:clamp(40px,8vw,60px);line-height:1;color:var(--liquid)}
+.big small{font-size:.35em;color:var(--muted);font-weight:400;margin-left:6px}
+.svgbox{overflow-x:auto}
+.svgbox svg{display:block;width:100%;height:auto}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:720px){.grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px}
+.fields{display:flex;flex-direction:column;gap:16px}
+input{font:500 16px var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px;width:100%;box-sizing:border-box}
+input:focus,button:focus-visible{outline:2px solid var(--liquid);outline-offset:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--mono);border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--liquid);border-color:var(--liquid);color:#fff}
+.btn{font:600 15px var(--body);border-radius:8px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.btn.primary{background:var(--liquid);border-color:var(--liquid);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
+.stat .v{font:600 20px var(--mono);font-variant-numeric:tabular-nums}
+.note{font-size:13px;color:var(--muted);margin:0}
+.flag{border-left:3px solid var(--warn);padding:8px 12px;background:color-mix(in srgb,var(--warn) 10%,transparent);border-radius:0 6px 6px 0;font-size:14px}
+.flag.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.flag.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.vialrow{display:flex;gap:20px;align-items:center}
+.vialrow svg{flex:0 0 auto;width:90px;height:auto}
+.vialrow .stats{flex:1;min-width:0}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.vialcard{display:flex;flex-direction:column;gap:12px}
+.pill{display:inline-block;font:600 12px var(--mono);padding:3px 10px;border-radius:999px;color:#fff}
+.pill.ok{background:var(--ok)}.pill.warn{background:var(--warn)}.pill.bad{background:var(--bad)}
+ol.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px;max-width:70ch}
+ol.steps li::marker{font-family:var(--mono);color:var(--liquid);font-weight:600}
+ol.steps b{font-weight:600}
+.disclaim{font-size:13px;color:var(--muted);max-width:75ch}
+@media (prefers-reduced-motion:no-preference){#liquid,#liquidHi,#plunger,#vialFill{transition:all .35s ease}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Tirzepatide Draw Guide</h1>
+    <p class="sub">5 mg once a week from a 30 mg vial, using a U-100 insulin syringe (1 mL = 100 units). The syringe shows exactly where to pull the plunger.</p>
+  </header>
+
+  <section class="panel hero" aria-label="Syringe">
+    <div class="readout">
+      <div><div class="label">Pull plunger to</div><div class="big" id="outUnits">50<small>units</small></div></div>
+      <div><div class="label">Volume</div><div class="mono" style="font-size:22px" id="outMl">0.5 mL</div></div>
+      <div><div class="label">Concentration</div><div class="mono" style="font-size:22px" id="outConc">10 mg/mL</div></div>
+    </div>
+    <div class="svgbox"><svg id="syr" viewBox="0 0 700 170" role="img" aria-label="Syringe showing draw line"></svg></div>
+    <div id="flags" style="display:flex;flex-direction:column;gap:8px"></div>
+  </section>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>Your setup</h2>
+      <div class="fields">
+        <div class="field"><label class="label" for="vialMg">Peptide in vial (mg)</label><input id="vialMg" type="number" min="1" step="1" value="30"></div>
+        <div class="field">
+          <span class="label">Bacteriostatic water added to vial (mL)</span>
+          <div class="chips" id="waterChips"></div>
+          <input id="waterMl" type="number" min="0.5" step="0.1" value="3" aria-label="Water in mL">
+        </div>
+        <div class="field"><label class="label" for="doseMg">Weekly dose (mg)</label><input id="doseMg" type="number" min="0" step="0.25" value="5"></div>
+      </div>
+      <p class="note" style="margin-top:16px">3 mL in a 30 mg vial makes 10 mg/mL, so every 1 mg is 10 units. Less water means a smaller draw, more water means a bigger one.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Remaining in vial</h2>
+      <div class="vialrow">
+        <svg id="vialSvg" viewBox="0 0 90 150" role="img" aria-label="Vial fill level"></svg>
+        <div class="stats">
+          <div class="stat"><div class="label">Doses left</div><div class="v" id="rDoses">6 of 6</div></div>
+          <div class="stat"><div class="label">Peptide left</div><div class="v" id="rMg">30 mg</div></div>
+          <div class="stat"><div class="label">Liquid left</div><div class="v" id="rMl">3.0 mL</div></div>
+          <div class="stat"><div class="label">Last dose</div><div class="v" id="rEnd">–</div></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="took" type="button">I took my dose</button>
+        <button class="btn" id="undo" type="button">Undo</button>
+        <button class="btn" id="newVial" type="button">Start new vial</button>
+      </div>
+      <p class="note" id="newVialHint" style="margin-top:10px">Start new vial resets the count and sets today as the mix date.</p>
+    </section>
+  </div>
+
+  <div class="grid">
+    <section class="panel vialcard">
+      <h2>Mixed peptide vial</h2>
+      <div class="row2">
+        <div class="field"><label class="label" for="mixDate">Date mixed</label><input id="mixDate" type="date"></div>
+        <div class="field"><label class="label" for="mixDays">Use within (days)</label><input id="mixDays" type="number" min="1" value="28"></div>
+      </div>
+      <div><span class="label">Discard by</span> <span class="mono" id="mixExp" style="font-size:18px;margin-left:8px"></span> <span id="mixPill"></span></div>
+      <p class="note">28 days refrigerated is the common default. If your pharmacy label gives a different beyond-use date, enter that instead.</p>
+    </section>
+    <section class="panel vialcard">
+      <h2>Bacteriostatic water (30 mL)</h2>
+      <div class="row2">
+        <div class="field"><label class="label" for="bacDate">Date first opened</label><input id="bacDate" type="date"></div>
+        <div class="field"><label class="label" for="bacDays">Use within (days)</label><input id="bacDays" type="number" min="1" value="28"></div>
+      </div>
+      <div><span class="label">Discard by</span> <span class="mono" id="bacExp" style="font-size:18px;margin-left:8px"></span> <span id="bacPill"></span></div>
+      <p class="note">Multi-dose vials are typically good for 28 days after the first puncture. Also check the printed expiry on the label and use whichever comes first.</p>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>Mixing the vial</h2>
+    <ol class="steps">
+      <li>Wash your hands and clear a clean surface. Let both vials sit out for a few minutes so they are near room temperature.</li>
+      <li>Pop the caps and wipe both rubber tops with a fresh alcohol swab. Let them air dry.</li>
+      <li>With a new syringe, pull <b id="mixStepMl">3 mL</b> of bacteriostatic water. A 1 mL insulin syringe holds 1 mL per fill, so this takes <b id="mixStepFills">3 fills</b>. Never touch the needle or let it touch anything but the rubber tops.</li>
+      <li>Push the needle into the peptide vial at an angle and let the water run slowly down the glass wall. Do not spray it straight onto the powder.</li>
+      <li>Gently swirl or roll the vial between your palms. Do not shake it. Let it sit until the liquid is fully clear with no flakes.</li>
+      <li>Write the date on the vial, tap Start new vial above, and store it in the fridge (2 to 8°C). Never freeze it and keep it out of light.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <h2>Drawing a dose</h2>
+    <ol class="steps">
+      <li>Wash your hands. Check the liquid is clear and the vial is not past its discard date.</li>
+      <li>Wipe the rubber top with an alcohol swab and let it dry.</li>
+      <li>Take a new U-100 syringe and pull air into it up to your line: <b class="unitsTxt">50 units</b>.</li>
+      <li>Push the needle into the vial and inject that air. This keeps the pressure even so it draws smoothly.</li>
+      <li>Flip the vial upside down with the needle tip under the liquid and slowly pull back to <b class="unitsTxt">50 units</b>.</li>
+      <li>Tap the syringe to float any bubbles up, push them out, and top back up to the line if needed.</li>
+      <li>Read the line at the top flat edge of the black stopper, the side closest to the needle.</li>
+      <li>After injecting, put the syringe straight into a sharps container and tap I took my dose. Never reuse or share syringes.</li>
+    </ol>
+  </section>
+
+  <p class="disclaim">This tool does the math on the numbers you enter. It does not set or recommend a dose. Confirm your dose and mixing volume with your prescriber or pharmacist, and get medical help right away for severe stomach pain, ongoing vomiting, or signs of an allergic reaction.</p>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const KEY="tzp-v2";
+const ids=["vialMg","waterMl","doseMg","mixDate","mixDays","bacDate","bacDays"];
+let taken=[];
+try{const s=JSON.parse(localStorage.getItem(KEY)||"{}");ids.forEach(k=>{if(s[k]!=null)$(k).value=s[k]});if(Array.isArray(s.taken))taken=s.taken}catch(e){}
+const iso=d=>{const t=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return t.toISOString().slice(0,10)};
+if(!$("mixDate").value)$("mixDate").value=iso(new Date());
+if(!$("bacDate").value)$("bacDate").value=iso(new Date());
+
+[1,2,3].forEach(v=>{const b=document.createElement("button");b.className="chip";b.type="button";b.textContent=v+" mL";b.dataset.v=v;
+  b.onclick=()=>{$("waterMl").value=v;update()};$("waterChips").appendChild(b)});
+
+const NS="http://www.w3.org/2000/svg";
+function el(svg,t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e}
+const X0=110,X1=620,PX=(X1-X0)/100,TOP=40,H=48;
+function tok(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function drawSyringe(){
+  const s=$("syr");s.innerHTML="";
+  const ink=tok("--ink"),steel=tok("--steel"),liq=tok("--liquid"),liq2=tok("--liquid-2"),barrel=tok("--barrel"),muted=tok("--muted");
+  el(s,"line",{x1:16,y1:TOP+H/2,x2:98,y2:TOP+H/2,stroke:steel,"stroke-width":2});
+  el(s,"rect",{x:98,y:TOP+12,width:32,height:H-24,rx:3,fill:steel});
+  el(s,"rect",{x:X0,y:TOP,width:X1-X0+30,height:H,rx:5,fill:barrel});
+  el(s,"rect",{id:"liquid",x:X0,y:TOP+3,width:0,height:H-6,fill:liq});
+  el(s,"rect",{id:"liquidHi",x:X0,y:TOP+7,width:0,height:6,fill:liq2,opacity:.7});
+  const g=document.createElementNS(NS,"g");g.id="plunger";s.appendChild(g);
+  el(g,"rect",{x:0,y:TOP+2,width:12,height:H-4,rx:2,fill:ink});
+  el(g,"rect",{x:12,y:TOP+H/2-5,width:220,height:10,fill:steel});
+  el(g,"rect",{x:232,y:TOP-10,width:8,height:H+20,rx:2,fill:steel});
+  el(s,"rect",{x:X0,y:TOP,width:X1-X0+30,height:H,rx:5,fill:"none",stroke:ink,"stroke-width":1.5});
+  el(s,"rect",{x:X1+30,y:TOP-14,width:8,height:H+28,rx:2,fill:steel});
+  for(let u=0;u<=100;u+=2){const x=X0+u*PX,major=u%10===0,mid=u%10===5;
+    el(s,"line",{x1:x,y1:TOP,x2:x,y2:TOP+(major?18:mid?13:8),stroke:ink,"stroke-width":major?1.4:1});
+    if(major){const t=el(s,"text",{x:x,y:TOP-8,"text-anchor":"middle","font-family":"IBM Plex Mono, monospace","font-size":19,fill:ink});t.textContent=u}}
+  el(s,"line",{id:"mark",x1:X0,y1:TOP-2,x2:X0,y2:TOP+H+10,stroke:liq,"stroke-width":2,"stroke-dasharray":"4 3"});
+  el(s,"text",{id:"markT",x:X0,y:TOP+H+34,"text-anchor":"middle","font-family":"IBM Plex Mono, monospace","font-size":22,"font-weight":600,fill:liq});
+  const c=el(s,"text",{x:16,y:TOP+H+62,"font-family":"IBM Plex Sans, sans-serif","font-size":18,fill:muted});c.textContent="U-100 · 1 mL · each small line = 2 units";
+}
+function placeSyringe(u){
+  const uc=Math.max(0,Math.min(100,u)),x=X0+uc*PX;
+  $("liquid").setAttribute("width",x-X0);$("liquidHi").setAttribute("width",x-X0);
+  $("plunger").setAttribute("transform","translate("+x+",0)");
+  $("mark").setAttribute("x1",x);$("mark").setAttribute("x2",x);
+  $("markT").setAttribute("x",Math.max(X0+14,x));$("markT").textContent=fmt(uc)+" u";
+}
+function drawVial(frac){
+  const s=$("vialSvg");s.innerHTML="";
+  const ink=tok("--ink"),steel=tok("--steel"),liq=tok("--liquid"),barrel=tok("--barrel");
+  el(s,"rect",{x:27,y:4,width:36,height:16,rx:3,fill:steel});
+  el(s,"rect",{x:33,y:20,width:24,height:12,fill:barrel,stroke:ink,"stroke-width":1.2});
+  el(s,"rect",{x:12,y:32,width:66,height:112,rx:10,fill:barrel,stroke:ink,"stroke-width":1.5});
+  const full=104,hh=full*Math.max(0,Math.min(1,frac));
+  el(s,"rect",{id:"vialFill",x:16,y:140-hh,width:58,height:hh,rx:7,fill:liq});
+}
+const fmt=n=>(Math.round(n*10)/10).toString();
+const addDays=(s,d)=>{const t=new Date(s+"T12:00:00");t.setDate(t.getDate()+(+d||0));return t};
+const fd=d=>d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+function pill(elm,exp){const days=Math.ceil((exp-new Date())/864e5);
+  elm.innerHTML=days<0?'<span class="pill bad">Expired</span>':days<=5?'<span class="pill warn">'+days+' days left</span>':'<span class="pill ok">'+days+' days left</span>'}
+function save(){try{const s={taken:taken};ids.forEach(k=>s[k]=$(k).value);localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+
+function update(){
+  const mg=+$("vialMg").value||0,ml=+$("waterMl").value||0,dose=+$("doseMg").value||0;
+  const conc=ml?mg/ml:0,doseMl=conc?dose/conc:0,units=doseMl*100;
+  $("outUnits").innerHTML=fmt(units)+"<small>units</small>";
+  $("outMl").textContent=(Math.round(doseMl*1000)/1000)+" mL";
+  $("outConc").textContent=fmt(conc)+" mg/mL";
+  placeSyringe(units);
+  document.querySelectorAll(".unitsTxt").forEach(e=>e.textContent=fmt(units)+" units");
+  $("mixStepMl").textContent=fmt(ml)+" mL";const fills=Math.ceil(ml);$("mixStepFills").textContent=fills+(fills===1?" fill":" fills");
+  document.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.v===ml)));
+
+  // remaining
+  const total=dose?Math.floor(mg/dose+1e-9):0,used=taken.length,left=Math.max(0,total-used);
+  const mgLeft=Math.max(0,mg-used*dose),mlLeft=Math.max(0,ml-used*doseMl);
+  $("rDoses").textContent=left+" of "+total;$("rMg").textContent=fmt(mgLeft)+" mg";$("rMl").textContent=mlLeft.toFixed(2)+" mL";
+  const mixExp=addDays($("mixDate").value,$("mixDays").value),bacExp=addDays($("bacDate").value,$("bacDays").value);
+  const base=used?new Date(taken[used-1]+"T12:00:00"):new Date($("mixDate").value+"T12:00:00");
+  const lastDose=left?new Date(base.getTime()+(used?left:left-1)*7*864e5):(used?new Date(taken[used-1]+"T12:00:00"):null);
+  $("rEnd").textContent=lastDose?lastDose.toLocaleDateString(undefined,{month:"short",day:"numeric"}):"–";
+  const nextDose=used?new Date(base.getTime()+7*864e5):base;
+  const fitBefore=Math.max(0,Math.min(left,Math.floor((mixExp-nextDose)/(7*864e5))+1));
+  drawVial(mg?mgLeft/mg:0);
+  $("took").disabled=left===0;$("undo").disabled=used===0;
+
+  $("mixExp").textContent=fd(mixExp);$("bacExp").textContent=fd(bacExp);pill($("mixPill"),mixExp);pill($("bacPill"),bacExp);
+  const f=[];
+  if(units>100)f.push(["bad","This dose is "+fmt(units)+" units, more than one 1 mL syringe holds. Ask your pharmacist about using less water rather than doing two draws."]);
+  else if(units>0&&units<5)f.push(["warn","Under 5 units is hard to measure accurately on a 100 unit syringe. Adding more water gives a bigger, easier to read draw."]);
+  if(lastDose&&left>0&&lastDose>mixExp)f.push(["warn","At "+fmt(dose)+" mg a week this vial holds "+total+" doses, about "+(total-1)+" weeks of use, but it should be thrown out by "+fd(mixExp)+". Plan for "+fitBefore+" more "+(fitBefore===1?"dose":"doses")+" from it before then, or check your pharmacy label for a longer date."]);
+  if(left===0&&used>0)f.push(["warn","This vial is used up. Mix a new one and tap Start new vial."]);
+  if(units>0&&units<=100&&f.length===0)f.push(["ok","Draw to the "+fmt(units)+" unit line. That is "+fmt(dose)+" mg."]);
+  $("flags").innerHTML=f.map(x=>'<div class="flag '+x[0]+'">'+x[1]+'</div>').join("");
+  save();
+}
+$("took").onclick=()=>{taken.push(iso(new Date()));update()};
+$("undo").onclick=()=>{taken.pop();update()};
+let armed=false;
+$("newVial").onclick=()=>{
+  if(!armed){armed=true;$("newVial").textContent="Tap again to confirm";$("newVialHint").textContent="This clears the dose count for the current vial.";
+    setTimeout(()=>{armed=false;$("newVial").textContent="Start new vial";$("newVialHint").textContent="Start new vial resets the count and sets today as the mix date."},4000);return}
+  armed=false;taken=[];$("mixDate").value=iso(new Date());$("newVial").textContent="Start new vial";
+  $("newVialHint").textContent="New vial started today.";update()};
+ids.forEach(k=>$(k).addEventListener("input",update));
+function redraw(){drawSyringe();update()}
+redraw();
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",redraw)}catch(e){}
+new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+})();
+</script>
+<script>
+if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+</script>
+</body>
+</html>
